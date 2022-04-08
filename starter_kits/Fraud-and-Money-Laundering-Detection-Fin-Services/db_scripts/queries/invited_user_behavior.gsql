@@ -27,8 +27,8 @@ CREATE QUERY invited_user_behavior (VERTEX<User> input_user) FOR GRAPH AntiFraud
   then put all touched edges into a variable for visualization purpose.*/
   Users = SELECT t
       FROM Start:s-(User_Refer_User>:e)-:t
-        ACCUM 
-          @@visualization_result_set += e;
+      ACCUM 
+        @@visualization_result_set += e;
 
   /* 2. Aggregate the amounts of all transactions conducted by the one-hop invitees (1) into
   variable @@sum_total_amount_sent. Also, store the traversed edges into @@visualization_result_set.*/

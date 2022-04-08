@@ -25,8 +25,7 @@ CREATE QUERY transferred_amount (vertex<User> sender, dateTime start_date = to_d
       Start = SELECT t 
           FROM Start:s-((User_to_Device|User_to_Payment):e)-:t
           WHERE t.@visited == false AND (t.type != "User" OR t != sender)
-          ACCUM
-            @@edge_set += e
+          ACCUM @@edge_set += e
           POST-ACCUM
             t.@visited += true;
 

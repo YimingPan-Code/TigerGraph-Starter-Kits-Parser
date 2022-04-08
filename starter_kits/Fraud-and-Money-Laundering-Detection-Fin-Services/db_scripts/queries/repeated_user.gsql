@@ -32,10 +32,11 @@ CREATE QUERY repeated_user (VERTEX<User> receiver) for GRAPH AntiFraud syntax v2
   Start = SELECT t 
       FROM transactions:s-(<User_Transfer_Transaction:e)-:t
       ACCUM @@edge_set += e
-      POST-ACCUM t.@sum_message_receive += 1,
-                 t.@is_s += TRUE,
-                 t.@max = t,
-                 t.@min = t;
+      POST-ACCUM 
+        t.@sum_message_receive += 1,
+        t.@is_s += TRUE,
+        t.@max = t,
+        t.@min = t;
 
   // 1. Traverse 8 step from the senders(Prep 2). min/max is used to find joint node
   WHILE (Start.size() > 0) LIMIT 8 DO
