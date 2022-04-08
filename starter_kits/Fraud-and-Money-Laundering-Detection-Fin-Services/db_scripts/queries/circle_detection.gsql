@@ -13,9 +13,7 @@ CREATE QUERY circle_detection (VERTEX<User> source_id)  FOR GRAPH AntiFraud SYNT
   MinAccum<INT> @min_right_dist = GSQL_INT_MAX;
   MinAccum<INT> @@min_src_send_time = GSQL_INT_MAX;
   MaxAccum<INT> @@max_src_receive_time = 0;
-  
-  // Flag used to record valid vertices in the subgraph
-  OrAccum @is_valid = FALSE;
+  OrAccum @is_valid = FALSE;// Flag used to record valid vertices in the subgraph
   
   // The following accumulators are used for aggregation on src
   SumAccum<INT> @sum_valid_trans_num = 0;
@@ -38,7 +36,7 @@ CREATE QUERY circle_detection (VERTEX<User> source_id)  FOR GRAPH AntiFraud SYNT
   // Starting from the input vertex user.
   Seed = {source_id};
 
-  /* Prep: Find all trasactions related to the input user with edge User_Transfer_Transaction or User_Receive_Transaction, and use one step to find out   src's min_send_time and max_receive_time, then initialize the distance info for source_id*/
+  /* Prep: Find all trasactions related to the input user with edge User_Transfer_Transaction or User_Receive_Transaction, and use one     step to find out   src's min_send_time and max_receive_time, then initialize the distance info for source_id*/
   Seed = SELECT src
     FROM Seed:src - ((User_Transfer_Transaction>|User_Receive_Transaction>):e) - Transaction:tgt
     ACCUM
@@ -60,7 +58,7 @@ CREATE QUERY circle_detection (VERTEX<User> source_id)  FOR GRAPH AntiFraud SYNT
    1) First bidirectional search for the potential subgraph for all loops of source_id
    2) Then one directional search to valid each path inside the subgraph using path filters, i.e. time increase along the path*/
 
-  // Set X as Seed
+  // Set X and Y as Seed
   X (_) = Seed;//X is used to do positive direction traversal
   Y (_) = Seed;//Y is used to do negative direction traversal
 
@@ -223,7 +221,7 @@ CREATE QUERY circle_detection (VERTEX<User> source_id)  FOR GRAPH AntiFraud SYNT
     STEP = STEP + 1;
   END;
 
-  // Start valid path traversal and circle detection
+  // 3. Start valid path traversal and circle detection
   STEP = 0;
   // Reset X as Seed
   X = Seed;
