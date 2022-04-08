@@ -165,7 +165,6 @@ CREATE QUERY circle_detection (VERTEX<User> source_id)  FOR GRAPH AntiFraud SYNT
                 THEN
                   tgt.@is_valid = TRUE
           END;
-  
           // From Transaction to User
           X = SELECT tgt
               FROM X:src - (<User_Receive_Transaction:e) - User:tgt
