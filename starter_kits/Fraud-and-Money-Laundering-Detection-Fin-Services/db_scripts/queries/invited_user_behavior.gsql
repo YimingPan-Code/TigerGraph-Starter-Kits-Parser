@@ -3,9 +3,11 @@ CREATE QUERY invited_user_behavior (VERTEX<User> input_user) FOR GRAPH AntiFraud
     This query is motivated to detect those fraudulent users who conduct activities to earn 
     referral bonus. How do we do that? 
 
-    Given an input user "input_user", this query traverses the graph, finds out how many two-hop users that
-    are indirectly invited by the input user. That is, the users invited by the input user's
-    invitees. It also calculates the transferred total money from the one-hop invitees. 
+    Given an input user "input_user", this query traverses the graph, finds out 
+    how many two-hop users that are indirectly invited by the input user. 
+    That is, the users invited by the input user's invitees. It also calculates the transferred 
+    total money from the one-hop invitees. 
+    
     Finally, the traversed subgraph is returned. Intuitively, if it's a fraudulent user, we
     can tell from the money transferred from their direct invitees; and their indirect invitees
     should be small or zero. 
@@ -30,8 +32,9 @@ CREATE QUERY invited_user_behavior (VERTEX<User> input_user) FOR GRAPH AntiFraud
       ACCUM 
         @@visualization_result_set += e;
 
-  /* 2. Aggregate the amounts of all transactions conducted by the one-hop invitees (1) into
-  variable @@sum_total_amount_sent. Also, store the traversed edges into @@visualization_result_set.*/
+  /* 2. Aggregate the amounts of all transactions conducted by the one-hop 
+  invitees (1) into variable @@sum_total_amount_sent. Also, store the traversed 
+  edges into @@visualization_result_set.*/
   Trans = SELECT t
       FROM Users:s-((User_Transfer_Transaction>):e)-:t
       ACCUM
@@ -39,7 +42,8 @@ CREATE QUERY invited_user_behavior (VERTEX<User> input_user) FOR GRAPH AntiFraud
         @@visualization_result_set += e;
 
   /* 3. Second-hop traversal. Find users invited by the one-hop invitees (1) and
-  store their count in @@sum_invited_person_num. And record the traversed edges into @@visualization_result_set. */
+  store their count in @@sum_invited_person_num. 
+  And record the traversed edges into @@visualization_result_set. */
   Users = SELECT t
       FROM Users:s-(User_Refer_User>:e)-:t
       WHERE t != input_user

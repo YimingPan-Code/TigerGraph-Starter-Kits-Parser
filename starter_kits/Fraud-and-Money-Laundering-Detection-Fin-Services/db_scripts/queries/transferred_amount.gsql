@@ -3,7 +3,8 @@ CREATE QUERY transferred_amount (vertex<User> sender, dateTime start_date = to_d
     This query answer the question that given a user, find out how much money has been transferred out from 
     her connected users within a date range. 
 
-    1) Start from a user "sender", find all other users connected via Device_Tokent or Payment_Instrument within 4 steps.
+    1) Start from a user "sender", find all other users connected via Device_Tokent or 
+       Payment_Instrument within 4 steps.
     2) Then start from all the connected users, find transferred transactions between 
        input start date "start_date" and end date "end_date".
     3) Calculate total transferred money amount of the transactions collected in step 2)

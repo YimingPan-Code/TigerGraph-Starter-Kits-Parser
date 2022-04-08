@@ -37,7 +37,9 @@ CREATE QUERY circle_detection (VERTEX<User> source_id)  FOR GRAPH AntiFraud SYNT
   // Starting from the input vertex user.
   Seed = {source_id};
 
-  /* Prep: Find all trasactions related to the input user with edge User_Transfer_Transaction or User_Receive_Transaction, and use one     step to find out   src's min_send_time and max_receive_time, then initialize the distance info for source_id*/
+  /* Prep: Find all trasactions related to the input user with edge User_Transfer_Transaction 
+  or User_Receive_Transaction, and use one step to find out src's min_send_time and max_receive_time, 
+  then initialize the distance info for source_id*/
   Seed = SELECT src
       FROM Seed:src - ((User_Transfer_Transaction>|User_Receive_Transaction>):e) - Transaction:tgt
       ACCUM
@@ -50,14 +52,16 @@ CREATE QUERY circle_detection (VERTEX<User> source_id)  FOR GRAPH AntiFraud SYNT
         src.@min_left_dist = 0,
         src.@min_right_dist = 0,
         src.@is_valid = TRUE
-      /* Make sure that it has a loop, if @@max_src_receive_time < @@min_src_send_time, then there is no loop 
-      because, if @@max_src_receive_time < @@min_src_send_time, all the valid money it receives are before it sends out money.*/
+      /* Make sure that it has a loop, if @@max_src_receive_time < @@min_src_send_time, 
+      then there is no loop because, if @@max_src_receive_time < @@min_src_send_time, 
+      all the valid money it receives are before it sends out money.*/
       HAVING @@max_src_receive_time >= @@min_src_send_time;
 
   /* PRINT epoch_to_datetime(@@max_src_receive_time), epoch_to_datetime(@@min_src_send_time), startTime, endTime;
   Now start the bidirectional search of loops for source_id
-   1) First bidirectional search for the potential subgraph for all loops of source_id
-   2) Then one directional search to valid each path inside the subgraph using path filters, i.e. time increase along the path*/
+  1) First bidirectional search for the potential subgraph for all loops of source_id
+  2) Then one directional search to valid each path inside the subgraph using path filters, 
+     i.e. time increase along the path*/
 
   // Set X and Y as Seed
   X (_) = Seed;//X is used to do positive direction traversal
