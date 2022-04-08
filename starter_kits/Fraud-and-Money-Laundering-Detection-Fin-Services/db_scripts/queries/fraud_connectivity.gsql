@@ -1,13 +1,13 @@
 CREATE QUERY fraud_connectivity (VERTEX<User> input_user, FLOAT trust_score) FOR GRAPH AntiFraud syntax v2 {
   /* 
-  This query finds all connect users/payment cards/device that has low credit score.  
+    This query finds all connect users/payment cards/device that has low credit score.  
 
-  Starting with an input user "input_user", find all other users connected to  
-  "input_user" through device token, payment instrument connected via transactions in 3 steps
+    Starting with an input user "input_user", find all other users connected to  
+    "input_user" through device token, payment instrument connected via transactions in 3 steps
 
-  Sample input:
-  input_user: any integer between 1 and 500
-  trust_score: minimum valid trust score. Any float number (e.g. 0.1)
+    Sample input:
+    input_user: any integer between 1 and 500
+    trust_score: minimum valid trust score. Any float number (e.g. 0.1)
   */
 
   OrAccum<BOOL> @visited;

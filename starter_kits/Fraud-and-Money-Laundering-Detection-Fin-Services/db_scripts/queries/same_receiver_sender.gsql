@@ -1,14 +1,15 @@
 CREATE QUERY same_receiver_sender(vertex<Transaction> transaction) FOR GRAPH AntiFraud syntax v2 {
   /* 
-  This query is used to find out whether a user conduct fraudulent transaction for themselves 
-  via fake accounts.
+    This query is used to find out whether a user conduct fraudulent transaction for themselves 
+    via fake accounts.
  
-  Given an input transaction "transaction", return true when its receiver and sender are connected via 
-  Device_Token and Payment_Instrument within 4 steps.    
+    Given an input transaction "transaction", return true when its receiver and sender are connected via 
+    Device_Token and Payment_Instrument within 4 steps.    
 
-  Sample input:
-  transaction: any integer between 1 and 1000.
+    Sample input:
+    transaction: any integer between 1 and 1000.
   */
+  
   OrAccum<BOOL> @from_receiver, @from_sender;
   OrAccum<BOOL> @@is_same;
   SetAccum<EDGE> @@edge_set;

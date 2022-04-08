@@ -1,20 +1,20 @@
 CREATE QUERY multi_transaction (VERTEX<Transaction> transaction) FOR GRAPH AntiFraud SYNTAX v2 {
  /*
- This query is motivated by detecting money laundering activities between two groups. Given 
- a transaction, it finds the network of users related to the sender, and finds the network 
- of users related to the receiver. Then, it finds all transactions among the two networks.
+   This query is motivated by detecting money laundering activities between two groups. Given 
+   a transaction, it finds the network of users related to the sender, and finds the network 
+   of users related to the receiver. Then, it finds all transactions among the two networks.
 
- Intuitively, this query can help data analysts to visualize the money laundering activities, 
- since it can visualize the transactions between the sender and receiver groups, and the 
- transaction patterns within each network.
+   Intuitively, this query can help data analysts to visualize the money laundering activities, 
+   since it can visualize the transactions between the sender and receiver groups, and the 
+   transaction patterns within each network.
 
-  1) Start from an input transaction, find its sender and receiver
-  2) Start from the sender, via Device_Token and Payment_Instrument edges find users within 4 steps. 
-  3) Start from the receiver, via Device_Token and Payment_Instrument edges find users within 4 steps.
-  4) Record transactions cross the sender and receiver groups.
+    1) Start from an input transaction, find its sender and receiver
+    2) Start from the sender, via Device_Token and Payment_Instrument edges find users within 4 steps. 
+    3) Start from the receiver, via Device_Token and Payment_Instrument edges find users within 4 steps.
+    4) Record transactions cross the sender and receiver groups.
 
-  Sample input:
-  transaction: any integer between 1 and 500.
+    Sample input:
+    transaction: any integer between 1 and 500.
   */  
 
   // Declare flags to indicate a user is a sender or a receiver
@@ -62,7 +62,7 @@ CREATE QUERY multi_transaction (VERTEX<Transaction> transaction) FOR GRAPH AntiF
       HAVING t.@from_receiver OR t.@from_sender;
   END;
 
-  // 3. From the receiver set mark the transactions 1-step related to its group member
+  // 3. From the receiver set, mark the transactions 1-step related to its group member
   Start = {@@receiver_set};
   Start = SELECT t 
     FROM Start:s-((User_Receive_Transaction>|User_Transfer_Transaction>):e)-:t
@@ -72,7 +72,7 @@ CREATE QUERY multi_transaction (VERTEX<Transaction> transaction) FOR GRAPH AntiF
       @@edge_set += e;
 
   /* 4. From the sender set, find transactions 1-step related to its group member,
-  then ecord those transactions 1-step related to both a sender member and a receiver member*/
+  then ecord those transactions 1-step related to both a sender member and a receiver member */
   Start = {@@sender_set};
   Start = SELECT t 
     FROM Start:s-((User_Receive_Transaction>|User_Transfer_Transaction>):e)-:t

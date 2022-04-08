@@ -1,13 +1,14 @@
 CREATE QUERY circle_detection (VERTEX<User> source_id)  FOR GRAPH AntiFraud SYNTAX v2 {
   /*
-  This is an anti-money laundering query. It detects money flow circle from a starting user. 
+    This is an anti-money laundering query. It detects money flow circle from a starting user. 
  
-  Given a user id "source_id", find all the transaction paths originated from the input user 
-  and eventually come back to the user. The path length is limited from 3 to 6. 
+    Given a user id "source_id", find all the transaction paths originated from the input user 
+    and eventually come back to the user. The path length is limited from 3 to 6. 
 
-  Sample input:
-  source_id : any integer between 1 and 500.
+    Sample input:
+    source_id : any integer between 1 and 500.
   */
+  
   TYPEDEF TUPLE<EDGE e, VERTEX v, DOUBLE amount, INT ts> Edge_Tuple;
   MinAccum<INT> @min_left_dist = GSQL_INT_MAX;
   MinAccum<INT> @min_right_dist = GSQL_INT_MAX;

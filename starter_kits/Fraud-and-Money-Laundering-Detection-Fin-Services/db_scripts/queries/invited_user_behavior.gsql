@@ -1,17 +1,17 @@
 CREATE QUERY invited_user_behavior (VERTEX<User> input_user) FOR GRAPH AntiFraud syntax v2 {
   /* 
-  This query is motivated to detect those fraudulent users who conduct activities to earn 
-  referral bonus. How do we do that? 
+    This query is motivated to detect those fraudulent users who conduct activities to earn 
+    referral bonus. How do we do that? 
 
-  Given an input user "input_user", this query traverses the graph, finds out how many two-hop users that
-  are indirectly invited by the input user. That is, the users invited by the input user's
-  invitees. It also calculates the transferred total money from the one-hop invitees. 
-  Finally, the traversed subgraph is returned. Intuitively, if it's a fraudulent user, we
-  can tell from the money transferred from their direct invitees; and their indirect invitees
-  should be small or zero. 
+    Given an input user "input_user", this query traverses the graph, finds out how many two-hop users that
+    are indirectly invited by the input user. That is, the users invited by the input user's
+    invitees. It also calculates the transferred total money from the one-hop invitees. 
+    Finally, the traversed subgraph is returned. Intuitively, if it's a fraudulent user, we
+    can tell from the money transferred from their direct invitees; and their indirect invitees
+    should be small or zero. 
  
-  Sample input
-  input_user: 5354357 | 30746939 | 23189347
+    Sample input
+    input_user: 5354357 | 30746939 | 23189347
   */
   
   // Declare global accumulators to store aggregates.
@@ -30,7 +30,7 @@ CREATE QUERY invited_user_behavior (VERTEX<User> input_user) FOR GRAPH AntiFraud
     ACCUM 
       @@visualization_result_set += e;
 
-  /* 2. Aggregate the amounts of all transactions conducted by the one-hop invitees into
+  /* 2. Aggregate the amounts of all transactions conducted by the one-hop invitees (1) into
   variable @@sum_total_amount_sent. Also, store the traversed edges into @@visualization_result_set.*/
   Trans = SELECT t
     FROM Users:s-((User_Transfer_Transaction>):e)-:t
@@ -38,7 +38,7 @@ CREATE QUERY invited_user_behavior (VERTEX<User> input_user) FOR GRAPH AntiFraud
       @@sum_total_amount_sent += t.amount,
       @@visualization_result_set += e;
 
-  /* 3. Second-hop traversal. Find users invited by the one-hop invitees and
+  /* 3. Second-hop traversal. Find users invited by the one-hop invitees (1) and
   store their count in @@sum_invited_person_num. And record the traversed edges into @@visualization_result_set. */
   Users = SELECT t
     FROM Users:s-(User_Refer_User>:e)-:t
