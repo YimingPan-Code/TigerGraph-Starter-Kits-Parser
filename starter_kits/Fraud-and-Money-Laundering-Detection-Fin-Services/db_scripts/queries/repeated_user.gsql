@@ -24,56 +24,58 @@ CREATE QUERY repeated_user (VERTEX<User> receiver) for GRAPH AntiFraud syntax v2
   Start (ANY) = {receiver};
   // Prep 1: Get all transactions the receiver get money from.
   transactions = SELECT t 
-    FROM Start:s-(User_Receive_Transaction>:e)-:t
-    ACCUM @@edge_set += e
-    POST-ACCUM t.@is_s += TRUE;
+      FROM Start:s-(User_Receive_Transaction>:e)-:t
+      ACCUM @@edge_set += e
+      POST-ACCUM t.@is_s += TRUE;
 
   // Prep 2: Get all senders related to the above transactions(Prep 1) .
   Start = SELECT t 
-    FROM transactions:s-(<User_Transfer_Transaction:e)-:t
-    ACCUM @@edge_set += e
-    POST-ACCUM t.@sum_message_receive += 1,
-               t.@is_s += TRUE,
-               t.@max = t,
-               t.@min = t;
+      FROM transactions:s-(<User_Transfer_Transaction:e)-:t
+      ACCUM @@edge_set += e
+      POST-ACCUM t.@sum_message_receive += 1,
+                 t.@is_s += TRUE,
+                 t.@max = t,
+                 t.@min = t;
 
   // 1. Traverse 8 step from the senders(Prep 2). min/max is used to find joint node
   WHILE (Start.size() > 0) LIMIT 8 DO
-    Start = SELECT t 
-      FROM Start:s-((User_to_Device|User_to_Payment):e)-:t
-      WHERE t.@sum_message_receive == 0
-      ACCUM
-        t.@sum_message_receive += 1,
-        t.@min += s.@min,
-        t.@max += s.@max
-      POST-ACCUM
-        // When received message from different source
-        CASE WHEN t.@sum_message_receive > 1 AND t.@min != t.@max THEN
-          @@linked_joint_set += t
-        END;   
+      Start = SELECT t 
+          FROM Start:s-((User_to_Device|User_to_Payment):e)-:t
+          WHERE t.@sum_message_receive == 0
+          ACCUM
+            t.@sum_message_receive += 1,
+            t.@min += s.@min,
+            t.@max += s.@max
+          POST-ACCUM
+            // When received message from different source
+            CASE WHEN t.@sum_message_receive > 1 AND t.@min != t.@max 
+              THEN
+                @@linked_joint_set += t
+            END;   
   END;
 
   Start = {@@linked_joint_set};
 
   // 2. Trace back to the source senders from the vertexes(1) that joint multiple paths
   WHILE (Start.size() > 0) DO
-    Start = SELECT t 
-      FROM Start:s-((User_to_Device|User_to_Payment):e)-:t
-      WHERE t.@sum_message_receive != 0
-      ACCUM @@edge_set += e
-      POST-ACCUM
-        s.@sum_message_receive = 0
-      POST-ACCUM
-        CASE WHEN t.@is_s THEN
-          t.@is_repeated += TRUE
-        END;
+      Start = SELECT t 
+          FROM Start:s-((User_to_Device|User_to_Payment):e)-:t
+          WHERE t.@sum_message_receive != 0
+          ACCUM @@edge_set += e
+          POST-ACCUM
+            s.@sum_message_receive = 0
+          POST-ACCUM
+            CASE WHEN t.@is_s 
+              THEN
+                t.@is_repeated += TRUE
+            END;
   END;
   
   // 3. Get the transactions to output
   transactions = SELECT s 
-    FROM transactions:s-(<User_Transfer_Transaction:e)-:t
-    WHERE t.@is_repeated == TRUE
-    ACCUM @@edge_set += e;
+      FROM transactions:s-(<User_Transfer_Transaction:e)-:t
+      WHERE t.@is_repeated == TRUE
+      ACCUM @@edge_set += e;
   
   // Output the result
   PRINT transactions [transactions.amount];
