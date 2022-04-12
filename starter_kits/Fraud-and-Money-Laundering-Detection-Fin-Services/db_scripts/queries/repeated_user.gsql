@@ -33,10 +33,10 @@ CREATE QUERY repeated_user (VERTEX<User> receiver) for GRAPH AntiFraud syntax v2
       FROM transactions:s-(<User_Transfer_Transaction:e)-:t
       ACCUM @@edge_set += e
       POST-ACCUM 
-        t.@sum_message_receive += 1,
-        t.@is_s += TRUE,
-        t.@max = t,
-        t.@min = t;
+          t.@sum_message_receive += 1,
+          t.@is_s += TRUE,
+          t.@max = t,
+          t.@min = t;
 
   // 1. Traverse 8 step from the senders(Prep 2). min/max is used to find joint node
   WHILE (Start.size() > 0) LIMIT 8 DO
@@ -44,15 +44,16 @@ CREATE QUERY repeated_user (VERTEX<User> receiver) for GRAPH AntiFraud syntax v2
           FROM Start:s-((User_to_Device|User_to_Payment):e)-:t
           WHERE t.@sum_message_receive == 0
           ACCUM
-            t.@sum_message_receive += 1,
-            t.@min += s.@min,
-            t.@max += s.@max
+              t.@sum_message_receive += 1,
+              t.@min += s.@min,
+              t.@max += s.@max
           POST-ACCUM
-            // When received message from different source
-            CASE WHEN t.@sum_message_receive > 1 AND t.@min != t.@max 
+              // When received message from different source
+              CASE WHEN 
+                t.@sum_message_receive > 1 AND t.@min != t.@max 
               THEN
                 @@linked_joint_set += t
-            END;   
+              END;   
   END;
 
   Start = {@@linked_joint_set};
@@ -64,12 +65,13 @@ CREATE QUERY repeated_user (VERTEX<User> receiver) for GRAPH AntiFraud syntax v2
           WHERE t.@sum_message_receive != 0
           ACCUM @@edge_set += e
           POST-ACCUM
-            s.@sum_message_receive = 0
+              s.@sum_message_receive = 0
           POST-ACCUM
-            CASE WHEN t.@is_s 
+              CASE WHEN 
+                t.@is_s 
               THEN
                 t.@is_repeated += TRUE
-            END;
+              END;
   END;
   
   // 3. Get the transactions to output

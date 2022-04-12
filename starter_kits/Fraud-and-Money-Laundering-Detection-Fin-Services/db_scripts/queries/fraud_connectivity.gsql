@@ -7,7 +7,7 @@ CREATE QUERY fraud_connectivity (VERTEX<User> input_user, FLOAT trust_score) FOR
 
     Sample input:
     input_user: any integer between 1 and 500
-    trust_score: minimum valid trust score. Any float number (e.g. 0.1)
+    trust_score: minimum valid credit score. Any float number (e.g. 0.1)
   */
 
   OrAccum<BOOL> @visited;
@@ -21,14 +21,16 @@ CREATE QUERY fraud_connectivity (VERTEX<User> input_user, FLOAT trust_score) FOR
       Start = SELECT t
           FROM Start:s-(:e)-:t
           SAMPLE 15 EDGE WHEN s.outdegree() >= 20
-          WHERE t.@visited == FALSE AND t != input_user 
+          WHERE t.@visited == FALSE 
+              AND t != input_user 
           ACCUM @@edge_set += e
           POST-ACCUM
-            CASE WHEN t.trust_score < trust_score 
+              CASE WHEN 
+                t.trust_score < trust_score 
               THEN
                 @@sum_result += 1
-            END,
-            t.@visited += TRUE;
+              END,
+              t.@visited += TRUE;
   END;
   
   // Output the result

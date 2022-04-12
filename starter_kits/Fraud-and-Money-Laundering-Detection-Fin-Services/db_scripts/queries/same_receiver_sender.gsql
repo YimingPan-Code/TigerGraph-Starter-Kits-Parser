@@ -20,31 +20,34 @@ CREATE QUERY same_receiver_sender(vertex<Transaction> transaction) FOR GRAPH Ant
   Start = SELECT t 
       FROM Start:s-((<User_Receive_Transaction_Rev|<User_Transfer_Transaction_Rev):e)-:t
       ACCUM
-        // Mark the sender and receiver according to the edge type
-        CASE WHEN e.type == "User_Receive_Transaction_Rev" 
+          // Mark the sender and receiver according to the edge type
+          CASE WHEN 
+            e.type == "User_Receive_Transaction_Rev" 
           THEN
             t.@from_receiver += true
           ELSE
             t.@from_sender += true
-        END,
-        @@edge_set += e;
+          END,
+          @@edge_set += e;
 
   // Traverse for 4 steps, or the paths of sender and receiver meets each other
   WHILE Start.size() > 0 AND @@is_same == false LIMIT 4 DO
       Start = SELECT t 
-        FROM Start:s-((User_to_Device|User_to_Payment):e)-:t
-        // Do not traverse the vertexes that were visited
-        WHERE t.@from_receiver == false AND t.@from_sender == false
-        ACCUM 
-          t.@from_receiver += s.@from_receiver,
-          t.@from_sender += s.@from_sender,
-          @@edge_set += e
-        POST-ACCUM
-          // When two paths meets in the middle
-          CASE WHEN t.@from_receiver == true AND t.@from_sender 
-            THEN
-              @@is_same += true
-          END;
+          FROM Start:s-((User_to_Device|User_to_Payment):e)-:t
+          // Do not traverse the vertexes that were visited
+          WHERE t.@from_receiver == false 
+              AND t.@from_sender == false
+          ACCUM 
+              t.@from_receiver += s.@from_receiver,
+              t.@from_sender += s.@from_sender,
+              @@edge_set += e
+          POST-ACCUM
+              // When two paths meets in the middle
+              CASE WHEN  
+                t.@from_receiver == true AND t.@from_sender 
+              THEN
+                @@is_same += true
+              END;
   END;
 
   // Output the result

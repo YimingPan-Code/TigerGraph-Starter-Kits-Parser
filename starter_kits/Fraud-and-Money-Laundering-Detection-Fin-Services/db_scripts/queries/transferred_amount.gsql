@@ -25,22 +25,24 @@ CREATE QUERY transferred_amount (vertex<User> sender, dateTime start_date = to_d
   WHILE (Start.size() > 0) LIMIT 4 DO
       Start = SELECT t 
           FROM Start:s-((User_to_Device|User_to_Payment):e)-:t
-          WHERE t.@visited == false AND (t.type != "User" OR t != sender)
+          WHERE t.@visited == false 
+              AND (t.type != "User" OR t != sender)
           ACCUM @@edge_set += e
           POST-ACCUM
-            t.@visited += true;
+              t.@visited += true;
 
             // 2. Collect the transferred money number for the users found in 2nd and 4th iteration  
-            CASE WHEN ITER_NUM % 2 == 1 
+              CASE WHEN 
+                ITER_NUM % 2 == 1 
               THEN
                 tmp = SELECT s 
                     FROM Start:s-(User_Transfer_Transaction>:e)-:t
                     WHERE epoch_to_datetime(t.ts) BETWEEN start_date AND end_date
                     ACCUM 
-                      @@sum_transaction_amount += t.amount,
-                      @@edge_set += e;
-            END;
-            ITER_NUM = ITER_NUM + 1;
+                        @@sum_transaction_amount += t.amount,
+                        @@edge_set += e;
+              END;
+              ITER_NUM = ITER_NUM + 1;
   END;
   
   // Output the result

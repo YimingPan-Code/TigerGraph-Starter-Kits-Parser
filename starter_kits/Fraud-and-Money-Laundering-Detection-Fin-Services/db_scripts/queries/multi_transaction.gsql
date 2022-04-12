@@ -32,16 +32,17 @@ CREATE QUERY multi_transaction (VERTEX<Transaction> transaction) FOR GRAPH AntiF
   Start = SELECT t 
       FROM Start:s-((<User_Receive_Transaction_Rev|<User_Transfer_Transaction_Rev):e)-:t
       ACCUM
-        // mark different groups according to edge type
-        CASE WHEN e.type == "User_Receive_Transaction_Rev" 
+          // mark different groups according to edge type
+          CASE WHEN 
+            e.type == "User_Receive_Transaction_Rev" 
           THEN
             t.@from_receiver += TRUE,
             @@receiver_set += t
           ELSE
             t.@from_sender += TRUE,
             @@sender_set += t
-        END,
-        @@edge_set += e;
+          END,
+          @@edge_set += e;
 
   /* 2. Via the User_to_Device, User_to_Payment edge types, traverse 4 steps and 
   put sender reachable users to the sender set, and receiver reachable 
@@ -49,19 +50,22 @@ CREATE QUERY multi_transaction (VERTEX<Transaction> transaction) FOR GRAPH AntiF
   WHILE Start.size() > 0 LIMIT 4 DO
       Start = SELECT t 
           FROM Start:s-((User_to_Device|User_to_Payment):e)-:t
-          WHERE t.@from_receiver == FALSE AND t.@from_sender == FALSE
+          WHERE t.@from_receiver == FALSE 
+              AND t.@from_sender == FALSE
           ACCUM 
-            t.@from_receiver += s.@from_receiver,
-            t.@from_sender += s.@from_sender,
-            @@edge_set += e
+              t.@from_receiver += s.@from_receiver,
+              t.@from_sender += s.@from_sender,
+              @@edge_set += e
           POST-ACCUM
-            CASE WHEN t.type == "User" AND t.@from_sender == TRUE 
+              CASE WHEN 
+                t.type == "User" AND t.@from_sender == TRUE 
               THEN
                 @@sender_set += t
-                WHEN t.@from_receiver == TRUE 
-                  THEN
-                    @@receiver_set += t
-                END
+              WHEN 
+                t.@from_receiver == TRUE 
+              THEN
+                @@receiver_set += t
+              END
           HAVING t.@from_receiver OR t.@from_sender;
   END;
 
@@ -70,7 +74,7 @@ CREATE QUERY multi_transaction (VERTEX<Transaction> transaction) FOR GRAPH AntiF
   Start = SELECT t 
       FROM Start:s-((User_Receive_Transaction>|User_Transfer_Transaction>):e)-:t
       WHERE t != transaction
-        ACCUM 
+      ACCUM 
           t.@from_receiver += s.@from_receiver,
           @@edge_set += e;
 
@@ -80,14 +84,14 @@ CREATE QUERY multi_transaction (VERTEX<Transaction> transaction) FOR GRAPH AntiF
   Start = SELECT t 
       FROM Start:s-((User_Receive_Transaction>|User_Transfer_Transaction>):e)-:t
       WHERE t != transaction
-        ACCUM
+      ACCUM
           t.@from_sender += s.@from_sender,
           @@edge_set += e
       HAVING t.@from_receiver AND t.@from_sender;
  
   // Print cross sender and receiver group transactions.
-  print Start;
+  PRINT Start;
   
   // Print within sender and receiver subgraph
-  print @@edge_set;
+  PRINT @@edge_set;
 }
